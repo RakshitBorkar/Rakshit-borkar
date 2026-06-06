@@ -1,0 +1,64 @@
+# ─────────────────────────────────────────
+# SFT (Supervised Fine-Tuning) Config
+# ─────────────────────────────────────────
+sft:
+  model_name: "Qwen/Qwen2.5-3B-Instruct"   # change to 1.5B for low VRAM
+  output_dir: "./checkpoints/sft"
+
+  # Data
+  train_file: "./data/train.jsonl"
+  val_file:   "./data/val.jsonl"
+  max_seq_length: 2048
+
+  # LoRA
+  lora_r:       16
+  lora_alpha:   32
+  lora_dropout: 0.05
+  target_modules:
+    - q_proj
+    - v_proj
+    - k_proj
+    - o_proj
+    - gate_proj
+    - up_proj
+    - down_proj
+
+  # Training
+  epochs:        3
+  batch_size:    4
+  grad_accum:    4
+  lr:            2.0e-4
+  warmup_ratio:  0.05
+  weight_decay:  0.01
+  max_grad_norm: 1.0
+  save_steps:    100
+  eval_steps:    100
+  logging_steps: 10
+  use_4bit:      true
+
+# ─────────────────────────────────────────
+# RL (GRPO) Config
+# ─────────────────────────────────────────
+rl:
+  model_name:       "Qwen/Qwen2.5-3B-Instruct"
+  sft_adapter_path: "./checkpoints/sft/final_adapter"  # start from SFT
+  output_dir:       "./checkpoints/rl"
+  train_file:       "./data/rl_prompts.jsonl"
+
+  # GRPO
+  group_size:    4
+  epochs:        2
+  batch_size:    2
+  lr:            1.0e-5
+  kl_coef:       0.05
+  max_new_tokens: 256
+  temperature:   0.8
+  clip_ratio:    0.2
+
+  # LoRA
+  lora_r:    8
+  lora_alpha: 16
+  use_4bit:  true
+
+  logging_steps: 10
+  save_steps:    50
